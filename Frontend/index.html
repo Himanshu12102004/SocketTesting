@@ -11,12 +11,25 @@
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
 
     <script>
-      const socket = io("https://sockettesting.onrender.com");
+      const socket = io("https://sockettesting.onrender.com", {
+        transports: ["websocket"],
+      });
+
       let startTime = 0;
+
+      socket.on("connect", () => {
+        console.log("Connected:", socket.id);
+        console.log(
+          "Transport:",
+          socket.io.engine.transport.name
+        );
+      });
+
       document.getElementById("ping").addEventListener("click", () => {
         startTime = performance.now();
+
         socket.emit("ping-all", {
-          timestamp: performance.now(),
+          timestamp: startTime,
         });
       });
 
@@ -26,12 +39,16 @@
         const message = document.createElement("p");
 
         if (data.from === socket.id) {
-          message.textContent = `You sent a ping! RTT: ${rtt.toFixed(2)} ms`;
+          message.textContent =
+            `You sent a ping! RTT: ${rtt.toFixed(2)} ms`;
         } else {
-          message.textContent = `${data.from} sent a ping! RTT: ${rtt.toFixed(2)} ms`;
+          message.textContent =
+            `${data.from} sent a ping!`;
         }
 
-        document.getElementById("messages").appendChild(message);
+        document
+          .getElementById("messages")
+          .appendChild(message);
       });
     </script>
   </body>
