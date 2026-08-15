@@ -3,29 +3,22 @@ const http = require("http");
 const { Server } = require("socket.io");
 
 const app = express();
+
 const server = http.createServer(app);
+
 const io = new Server(server, {
   cors: {
-    origin: "*",
-  },
+    origin: "*"
+  }
 });
-
-app.use(express.static("public"));
-
-const ROOM = "game";
 
 io.on("connection", (socket) => {
   console.log("Connected:", socket.id);
 
-  socket.join(ROOM);
-
-  // Receive ping from one client
-  socket.on("ping-all", () => {
-    console.log(`${socket.id} sent a ping`);
-
-    // Broadcast to everyone in the room
-    io.to(ROOM).emit("ping-received", {
+  socket.on("ping-all", (data) => {
+    io.emit("ping-received", {
       from: socket.id,
+      pingId: data.pingId
     });
   });
 
@@ -34,6 +27,6 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
+server.listen(3000, "0.0.0.0", () => {
+  console.log("Server running on port 3000");
 });
