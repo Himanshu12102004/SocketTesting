@@ -11,12 +11,18 @@
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
 
     <script>
-      const socket = io("https://sockettesting.onrender.com");
+      const socket = io("https://sockettesting.onrender.com", {
+        transports: ["websocket"]
+      });
 
       let pingStartTime = null;
 
+      socket.on("connect", () => {
+        console.log("Connected!");
+        console.log("Transport:", socket.io.engine.transport.name);
+      });
+
       document.getElementById("ping").addEventListener("click", () => {
-        // Record the exact time before sending
         pingStartTime = performance.now();
 
         socket.emit("ping-all");
@@ -26,7 +32,6 @@
         const message = document.createElement("p");
 
         if (data.from === socket.id) {
-          // Calculate round-trip time
           const rtt = performance.now() - pingStartTime;
 
           message.textContent =
