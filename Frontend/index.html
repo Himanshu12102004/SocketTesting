@@ -15,33 +15,46 @@
         transports: ["websocket"]
       });
 
-      let pingStartTime = null;
-
-      socket.on("connect", () => {
-        console.log("Connected!");
-        console.log("Transport:", socket.io.engine.transport.name);
-      });
+      // Store the start time of every outstanding ping
+      const pendingPings = new Map();
 
       document.getElementById("ping").addEventListener("click", () => {
-        pingStartTime = performance.now();
+        // Generate a unique ID for this ping
+        const pingId = crypto.randomUUID();
 
-        socket.emit("ping-all");
+        // Store when THIS particular ping was sent
+        pendingPings.set(pingId, performance.now());
+
+        socket.emit("ping-all", {
+          pingId: pingId
+        });
       });
 
       socket.on("ping-received", (data) => {
         const message = document.createElement("p");
 
         if (data.from === socket.id) {
-          const rtt = performance.now() - pingStartTime;
+          const startTime = pendingPings.get(data.pingId);
 
-          message.textContent =
-            `You sent a ping! RTT: ${rtt.toFixed(2)} ms`;
+          if (startTime !== undefined) {
+            const rtt = performance.now() - startTime;
+
+            message.textContent =
+              `You sent a ping! RTT: ${rtt.toFixed(2)} ms`;
+
+            // We don't need this timestamp anymore
+            pendingPings.delete(data.pingId);
+          }
         } else {
           message.textContent =
             `${data.from} sent a ping!`;
         }
 
         document.getElementById("messages").appendChild(message);
+      });
+
+      socket.on("connect", () => {
+        console.log("Connected using:", socket.io.engine.transport.name);
       });
     </script>
   </body>
