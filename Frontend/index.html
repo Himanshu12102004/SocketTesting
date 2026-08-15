@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Socket.IO Test</title>
+</head>
+
+<body>
+
+    <button id="ping">PING</button>
+    <div id="messages"></div>
+
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+
+    <script>
+      const socket = io("http://localhost:3000");
+
+        document.getElementById("ping").addEventListener("click", () => {
+            socket.emit("ping-all");
+        });
+
+        socket.on("ping-received", (data) => {
+            const message = document.createElement("p");
+
+            message.textContent =
+                data.from === socket.id
+                    ? "You sent a ping!"
+                    : `${data.from} sent a ping!`;
+
+            document.getElementById("messages")
+                .appendChild(message);
+        });
+    </script>
+
+</body>
+</html>
