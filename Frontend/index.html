@@ -12,49 +12,34 @@
 
     <script>
       const socket = io("https://sockettesting.onrender.com", {
-        transports: ["websocket"]
+        transports: ["websocket"],
       });
 
-      // Store the start time of every outstanding ping
-      const pendingPings = new Map();
+      let pingStartTime = null;
+
+      socket.on("connect", () => {
+        console.log("Connected!");
+        console.log("Transport:", socket.io.engine.transport.name);
+      });
 
       document.getElementById("ping").addEventListener("click", () => {
-        // Generate a unique ID for this ping
-        const pingId = crypto.randomUUID();
+        pingStartTime = performance.now();
 
-        // Store when THIS particular ping was sent
-        pendingPings.set(pingId, performance.now());
-
-        socket.emit("ping-all", {
-          pingId: pingId
-        });
+        socket.emit("ping-all");
       });
 
       socket.on("ping-received", (data) => {
         const message = document.createElement("p");
 
         if (data.from === socket.id) {
-          const startTime = pendingPings.get(data.pingId);
+          const rtt = performance.now() - pingStartTime;
 
-          if (startTime !== undefined) {
-            const rtt = performance.now() - startTime;
-
-            message.textContent =
-              `You sent a ping! RTT: ${rtt.toFixed(2)} ms`;
-
-            // We don't need this timestamp anymore
-            pendingPings.delete(data.pingId);
-          }
+          message.textContent = `You sent a ping! RTT: ${rtt.toFixed(2)} ms`;
         } else {
-          message.textContent =
-            `${data.from} sent a ping!`;
+          message.textContent = `${data.from} sent a ping!`;
         }
 
         document.getElementById("messages").appendChild(message);
-      });
-
-      socket.on("connect", () => {
-        console.log("Connected using:", socket.io.engine.transport.name);
       });
     </script>
   </body>
