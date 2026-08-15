@@ -11,11 +11,12 @@
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
 
     <script>
-      const socket = io("https://dismantle-tweezers-augmented.ngrok-free.dev", {
-        transports: ["websocket"],
-      });
-
-      let pingStartTime = null;
+      const socket = io(
+        "https://dismantle-tweezers-augmented.ngrok-free.dev",
+        {
+          transports: ["websocket"],
+        }
+      );
 
       socket.on("connect", () => {
         console.log("Connected!");
@@ -23,20 +24,23 @@
       });
 
       document.getElementById("ping").addEventListener("click", () => {
-        pingStartTime = performance.now();
-
-        socket.emit("ping-all");
+        socket.emit("ping-all", {
+          pingId: crypto.randomUUID(),
+          timestamp: performance.now(),
+        });
       });
 
       socket.on("ping-received", (data) => {
         const message = document.createElement("p");
 
         if (data.from === socket.id) {
-          const rtt = performance.now() - pingStartTime;
+          const rtt = performance.now() - data.timestamp;
 
-          message.textContent = `You sent a ping! RTT: ${rtt.toFixed(2)} ms`;
+          message.textContent =
+            `You sent a ping! RTT: ${rtt.toFixed(2)} ms`;
         } else {
-          message.textContent = `${data.from} sent a ping!`;
+          message.textContent =
+            `${data.from} sent a ping!`;
         }
 
         document.getElementById("messages").appendChild(message);
