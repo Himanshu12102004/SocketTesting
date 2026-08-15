@@ -14,16 +14,23 @@
       const socket = io("https://sockettesting.onrender.com");
 
       document.getElementById("ping").addEventListener("click", () => {
-        socket.emit("ping-all");
+        socket.emit("ping-all", {
+          timestamp: performance.now()
+        });
       });
 
       socket.on("ping-received", (data) => {
+        const rtt = performance.now() - data.timestamp;
+
         const message = document.createElement("p");
 
-        message.textContent =
-          data.from === socket.id
-            ? "You sent a ping!"
-            : `${data.from} sent a ping!`;
+        if (data.from === socket.id) {
+          message.textContent =
+            `You sent a ping! RTT: ${rtt.toFixed(2)} ms`;
+        } else {
+          message.textContent =
+            `${data.from} sent a ping! RTT: ${rtt.toFixed(2)} ms`;
+        }
 
         document.getElementById("messages").appendChild(message);
       });
