@@ -11,30 +11,29 @@
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
 
     <script>
-      const socket = io("https://dismantle-tweezers-augmented.ngrok-free.dev", {
+      const socket = io("https://sockettesting.onrender.com", {
         transports: ["websocket"],
       });
+
+      let pingStartTime = null;
 
       socket.on("connect", () => {
         console.log("Connected!");
         console.log("Transport:", socket.io.engine.transport.name);
       });
-      let currentTime = 0;
 
       document.getElementById("ping").addEventListener("click", () => {
-        currentTime = performance.now();
-        socket.emit("ping-all", {
-          pingId: crypto.randomUUID(),
-          timestamp: performance.now(),
-        });
+        pingStartTime = performance.now();
+
+        socket.emit("ping-all");
       });
 
       socket.on("ping-received", (data) => {
         const message = document.createElement("p");
 
         if (data.from === socket.id) {
-          const rtt = performance.now() - currentTime;
-          console.log(rtt);
+          const rtt = performance.now() - pingStartTime;
+
           message.textContent = `You sent a ping! RTT: ${rtt.toFixed(2)} ms`;
         } else {
           message.textContent = `${data.from} sent a ping!`;
