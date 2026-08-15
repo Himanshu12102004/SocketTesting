@@ -12,16 +12,16 @@
 
     <script>
       const socket = io("https://sockettesting.onrender.com");
-
+      let startTime = 0;
       document.getElementById("ping").addEventListener("click", () => {
+        startTime = performance.now();
         socket.emit("ping-all", {
           timestamp: performance.now(),
         });
       });
 
       socket.on("ping-received", (data) => {
-        console.log(data.timestamp);
-        const rtt = performance.now() - data.timestamp;
+        const rtt = performance.now() - startTime;
 
         const message = document.createElement("p");
 
