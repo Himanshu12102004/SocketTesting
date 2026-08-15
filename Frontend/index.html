@@ -13,27 +13,22 @@
     <script>
       const socket = io("https://sockettesting.onrender.com");
 
-      let pingStartTime = null;
-
       document.getElementById("ping").addEventListener("click", () => {
-        // Record the exact time before sending
-        pingStartTime = performance.now();
-
-        socket.emit("ping-all");
+        socket.emit("ping-all", {
+          timestamp: performance.now(),
+        });
       });
 
       socket.on("ping-received", (data) => {
+        console.log(data.timestamp);
+        const rtt = performance.now() - data.timestamp;
+
         const message = document.createElement("p");
 
         if (data.from === socket.id) {
-          // Calculate round-trip time
-          const rtt = performance.now() - pingStartTime;
-
-          message.textContent =
-            `You sent a ping! RTT: ${rtt.toFixed(2)} ms`;
+          message.textContent = `You sent a ping! RTT: ${rtt.toFixed(2)} ms`;
         } else {
-          message.textContent =
-            `${data.from} sent a ping!`;
+          message.textContent = `${data.from} sent a ping! RTT: ${rtt.toFixed(2)} ms`;
         }
 
         document.getElementById("messages").appendChild(message);
